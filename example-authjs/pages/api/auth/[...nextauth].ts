@@ -1,6 +1,43 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+async function getUserInfo(token) {
+    try {
+        const url =
+            "https://id-dev-styk.auth.eu-west-1.amazoncognito.com/oauth2/userInfo?" +
+            new URLSearchParams({
+                access_token: token.accessToken,
+            });
+    
+        const response = await fetch(url, {
+            headers: {
+            // "Content-Type": "application/application/json;",
+            Authorization: `Bearer ${token.accessToken}`,
+            },
+        });
+  
+        const userInfo = await response.json();
+  
+        if (!response.ok) {
+            throw userInfo;
+        }
+  
+        console.log(userInfo);
+        // console.log(token.accessToken);
+        return {
+            ...token,
+            user: userInfo,
+        };
+    } catch (error) {
+      // console.log(error);
+  
+        return {
+            ...token,
+            error: "RefreshAccessTokenError",
+        };
+    }
+}
+
 const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
@@ -61,7 +98,43 @@ const authOptions: NextAuthOptions = {
             }
     
         })
-    ]
+    ],
+    callbacks: {
+        async jwt({ token, user, account }) {
+          // Initial sign in
+          if (account && user) {
+            return {
+              accessToken: account.access_token,
+              idToken: account.id_token,
+              accessTokenExpires:
+                Date.now() + (account.expires_in as number) * 1000,
+              refreshToken: account.refresh_token,
+              user,
+            };
+          }
+    
+          // Return previous token if the access token has not expired yet
+          if (Date.now() < token.accessTokenExpires) {
+            return token;
+          }
+    
+          // Access token has expired, try to update it
+          // return refreshAccessToken(token);
+          return getUserInfo(token);
+        },
+    
+        async session({ session, token }) {
+          session.user = token.user;
+        //   session.accessToken = token.accessToken;
+        //   session.idToken = token.idToken;
+        //   session.error = token.error;
+    
+          return session;
+        },
+    },
+    pages: {
+        signIn: "/auth/signin",
+    },
 }
 
 export default NextAuth(authOptions)
