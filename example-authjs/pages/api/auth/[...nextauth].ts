@@ -38,13 +38,13 @@ async function getUserInfo(token) {
     }
 }
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
     providers: [
         CredentialsProvider({
-            type: "credentials",
+            name: "Credentials",
             credentials: {
                 // username: { label: "Username", type: "text", placeholder: "jsmith" },
                 // password: { label: "Password", type: "password" }
@@ -53,14 +53,14 @@ const authOptions: NextAuthOptions = {
                 try {
                     console.debug("****createCredential: ", JSON.stringify(credentials))
                     var aws = require('aws-sdk');
-                        aws.config.update({
-                            region: 'us-east-1',
-                            credentials: new aws.CognitoIdentityCredentials({
-                                IdentityPoolId: '???'
+                    aws.config.update({
+                        region: 'us-west-1',
+                        credentials: new aws.CognitoIdentityCredentials({
+                            IdentityPoolId: '???'
                         })
                     });
                     var cognitoidentityserviceprovider = new aws.CognitoIdentityServiceProvider();
-                    const UserPoolId = process.env.SOMEPOOLID
+                    const UserPoolId = process.env.USER_POOL_ID
                     const { username, password } = credentials as { username: string; password: string; }
                     const userParams = {
                         "AuthParameters": {
@@ -68,7 +68,7 @@ const authOptions: NextAuthOptions = {
                             "PASSWORD": password,
                         },
                         "AuthFlow": "ADMIN_NO_SRP_AUTH",
-                        "ClientId": process.env.SOMECLIENTID,
+                        "ClientId": process.env.USER_POOL_CLIENT_ID,
                         UserPoolId
                     };
                     const errorInit = await cognitoidentityserviceprovider
@@ -114,7 +114,7 @@ const authOptions: NextAuthOptions = {
           }
     
           // Return previous token if the access token has not expired yet
-          if (Date.now() < token.accessTokenExpires) {
+          if (Date.now() < (Date.now() + (account.expires_in as number) * 1000)) {
             return token;
           }
     
