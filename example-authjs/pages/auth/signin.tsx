@@ -26,10 +26,12 @@ function signin() {
           </div>
           <div>
             <Button onClick={async (event) => {
+                    event.preventDefault()
                     const x = await signIn("credentials",
                       {
                         redirect: false,
-                        username, password,
+                        event.target.username.value, 
+                        event.target.password.value,
                         callbackUrl: 'http://localhost:3000'
                       })
                       .then((data) => {
