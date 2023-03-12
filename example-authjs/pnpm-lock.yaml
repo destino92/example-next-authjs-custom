@@ -41,11 +41,13 @@ specifiers:
   class-variance-authority: ^0.4.0
   clsx: ^1.2.1
   cmdk: ^0.1.21
+  crypto: ^1.0.1
   eslint: ^8.31.0
   eslint-config-next: 13.0.0
   eslint-config-prettier: ^8.3.0
   eslint-plugin-react: ^7.31.11
   eslint-plugin-tailwindcss: ^3.8.0
+  jwt-decode: ^3.1.2
   lucide-react: 0.105.0-alpha.4
   next: ^13.1.6
   next-auth: ^4.19.2
@@ -96,6 +98,8 @@ dependencies:
   class-variance-authority: 0.4.0_typescript@4.9.4
   clsx: 1.2.1
   cmdk: 0.1.22_5ndqzdd6t4rivxsukjv3i3ak2q
+  crypto: 1.0.1
+  jwt-decode: 3.1.2
   lucide-react: 0.105.0-alpha.4_react@18.2.0
   next: 13.2.1_biqbaboplfbrettd7655fr4n2y
   next-auth: 4.19.2_qgtcjgzkkjtbiyvnx7d32fl5vu
@@ -2046,6 +2050,11 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  /crypto/1.0.1:
+    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
+    deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
+    dev: false
+
   /cssesc/3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
     engines: {node: '>=4'}
@@ -3089,6 +3098,10 @@ packages:
       array-includes: 3.1.6
       object.assign: 4.1.4
     dev: true
+
+  /jwt-decode/3.1.2:
+    resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /language-subtag-registry/0.3.22:
     resolution: {integrity: sha512-tN0MCzyWnoz/4nHS6uxdlFWoUZT7ABptwKPQ52Ea7URk6vll88bWBVhodtnlfEuCcKWNGoc+uGbw1cwa9IKh/w==}

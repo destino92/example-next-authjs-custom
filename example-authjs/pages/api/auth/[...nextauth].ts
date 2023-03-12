@@ -1,5 +1,15 @@
+import AWS from "aws-sdk"
+import * as crypto from 'crypto';
+import jwt_decode from "jwt-decode"
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+const generateHash = (username: string, clientId: string, secretHash: string): string => {
+    return crypto.createHmac('SHA256', secretHash)
+        .update(username + clientId)
+        .digest('base64')
+}
+
 
 async function getUserInfo(token) {
     try {
@@ -51,47 +61,75 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials, req) {
                 try {
-                    console.debug("****createCredential: ", JSON.stringify(credentials))
-                    var aws = require('aws-sdk');
-                    aws.config.update({
-                        region: 'us-west-1',
-                        credentials: new aws.CognitoIdentityCredentials({
-                            IdentityPoolId: '???'
-                        })
-                    });
-                    var cognitoidentityserviceprovider = new aws.CognitoIdentityServiceProvider();
-                    const UserPoolId = process.env.USER_POOL_ID
+                    const cognitoIdentity = new AWS.CognitoIdentityServiceProvider({
+                        region: process.env.AWS_REGION
+                    })
+                    // const identityPoolId: any = process.env.IDENTITY_POOL_ID;
+                    // AWS.config.update({
+                    //     region: process.env.AWS_REGION,
+                    //     credentials: new AWS.CognitoIdentityCredentials({
+                    //         IdentityPoolId: identityPoolId,
+                    //     })
+                    // });
                     const { username, password } = credentials as { username: string; password: string; }
-                    const userParams = {
-                        "AuthParameters": {
-                            "USERNAME": username,
-                            "PASSWORD": password,
-                        },
-                        "AuthFlow": "ADMIN_NO_SRP_AUTH",
-                        "ClientId": process.env.USER_POOL_CLIENT_ID,
-                        UserPoolId
-                    };
-                    const errorInit = await cognitoidentityserviceprovider
-                        .adminInitiateAuth(userParams).promise()
-                        .then((data) => {
-                            return null
-                        })
-                        .catch((error) => {
-                            console.error("*****error createCredential adminInitiateAuth: ", error)
-                            console.error(JSON.stringify(error))
-                            return error
-                        })
-                    if (errorInit) {
-                        console.error("*****errorInit: ", errorInit)
-                        if (errorInit.code) {
-                            return Promise.reject(new Error(
-                                errorInit.code
-                            ))
+                    console.log({
+                        username,
+                        password
+                    })
+                    const clientId = process.env.USER_POOL_CLIENT_ID
+                    const clientSecret = process.env.USER_POOL_CLIENT_SECRET
+                    const params = {
+                        AuthFlow: 'USER_PASSWORD_AUTH',
+                        ClientId: clientId,
+                        AuthParameters: {
+                            'USERNAME': username,
+                            'PASSWORD': password,
+                            'SECRET_HASH': generateHash(username, clientId, clientSecret)
                         }
-                        return Promise.reject(new Error(
-                            "Unknown Error"
-                        ))
                     }
+
+                    const data = await cognitoIdentity.initiateAuth(params).promise()
+                    console.log(data)
+                    const identityToken: any = jwt_decode(data.AuthenticationResult?.IdToken)
+                    console.log(identityToken)
+
+                    return identityToken
+                    
+                    // console.debug("****createCredential: ", JSON.stringify(credentials))
+                    // var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
+                    // const UserPoolId = process.env.USER_POOL_ID
+                    // const { username, password } = credentials as { username: string; password: string; }
+                    // const userParams = {
+                    //     "AuthParameters": {
+                    //         "USERNAME": username,
+                    //         "PASSWORD": password,
+                    //     },
+                    //     "AuthFlow": "ADMIN_USER_PASSWORD_AUTH",
+                    //     "ClientId": process.env.USER_POOL_CLIENT_ID,
+                    //     UserPoolId
+                    // };
+                    // const errorInit = await cognitoidentityserviceprovider
+                    //     .adminInitiateAuth(userParams).promise()
+                    //     .then((data) => {
+                    //         console.log(data)
+                    //         return null
+                    //     })
+                    //     .catch((error) => {
+                    //         console.error("*****error createCredential adminInitiateAuth: ", error)
+                    //         console.error(JSON.stringify(error))
+                    //         return error
+                    //     })
+                    // if (errorInit) {
+                    //     console.error("*****errorInit: ", errorInit)
+                    //     if (errorInit.code) {
+                    //         return Promise.reject(new Error(
+                    //             errorInit.code
+                    //         ))
+                    //     }
+                    //     return Promise.reject(new Error(
+                    //         "Unknown Error"
+                    //     ))
+                    // }
                 } catch(e) {
                     console.log(e)
                 }
